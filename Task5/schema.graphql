@@ -1,0 +1,63 @@
+"""
+GraphQL-схема сервиса client-info.
+
+Покрывает контракт REST API:
+  GET /clients/{id}
+  GET /clients/{id}/documents
+  GET /clients/{id}/relatives
+
+Позволяет потребителям (core-app, web-приложение) выбирать только нужные
+поля и получать связанные сущности (документы, родственники) одним запросом.
+"""
+
+"""
+Клиент InsureTech. Корневая сущность, объединяет персональные данные,
+документы и сведения о родственниках.
+"""
+type Client {
+  "Уникальный идентификатор клиента"
+  id: ID!
+  "ФИО клиента"
+  name: String!
+  "Возраст клиента"
+  age: Int
+  "Документы клиента"
+  documents: [Document!]!
+  "Родственники клиента"
+  relatives: [Relative!]!
+}
+
+"Документ клиента (паспорт, СНИЛС, водительское удостоверение и т.п.)"
+type Document {
+  id: ID!
+  "Тип документа"
+  type: String!
+  "Номер документа"
+  number: String!
+  "Дата выдачи (ISO 8601)"
+  issueDate: String
+  "Дата окончания действия (ISO 8601)"
+  expiryDate: String
+}
+
+"Родственник клиента"
+type Relative {
+  id: ID!
+  "Тип родственной связи (супруг, ребёнок и т.п.)"
+  relationType: String!
+  "ФИО родственника"
+  name: String!
+  "Возраст родственника"
+  age: Int
+}
+
+type Query {
+  "Получить клиента по ID. Поля documents/relatives загружаются по требованию."
+  client(id: ID!): Client
+
+  "Получить только документы клиента (когда данные клиента уже в кэше)."
+  clientDocuments(clientId: ID!): [Document!]!
+
+  "Получить только родственников клиента."
+  clientRelatives(clientId: ID!): [Relative!]!
+}
